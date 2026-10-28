@@ -61,7 +61,7 @@ test('last colored segment has a rounded right end', async () => {
 test('caption: percent and time left', async () => {
   const iso = (ms: number) => new Date(ms).toISOString()
   expect(caption({ kind: 'five_hour', percentUsed: 19.4, resetsAt: iso(NOW + 131 * 60_000) }, NOW)).toEqual({ pct: '19%', rest: ' / 2:11' })
-  expect(caption({ kind: 'seven_day', percentUsed: 21, resetsAt: iso(NOW + 5.2 * DAY) }, NOW)).toEqual({ pct: '21%', rest: ' / 5d' })
+  expect(caption({ kind: 'seven_day', percentUsed: 21, resetsAt: iso(NOW + 5.2 * DAY) }, NOW)).toEqual({ pct: '21%', rest: ' / 5d 4h' })
   // Окно ещё не началось — без времени.
   expect(caption({ kind: 'five_hour', percentUsed: 0 }, NOW)).toEqual({ pct: '0%', rest: '' })
 })
@@ -69,7 +69,10 @@ test('caption: percent and time left', async () => {
 test('time left', async () => {
   expect(left('2026-10-17T14:16:30Z', NOW)).toBe('4:16')
   expect(left('2026-10-17T10:05:00Z', NOW)).toBe('0:05')
-  expect(left('2026-10-22T13:05:00Z', NOW)).toBe('5d')
+  expect(left('2026-10-22T13:05:00Z', NOW)).toBe('5d 3h')
+  // 27 часов до сброса — «1d 3h», а не просто «1d».
+  expect(left('2026-10-18T13:00:00Z', NOW)).toBe('1d 3h')
+  expect(left('2026-10-18T10:00:00Z', NOW)).toBe('1d 0h')
   expect(left(undefined, NOW)).toBe('')
   expect(weekElapsed('2026-10-20T22:00:00Z', NOW)).toBe(0.5)
 })
@@ -110,7 +113,7 @@ test('band draws two bars and the split drags', async ($, on) => {
   expect(await desk.find({ text: '9%' })).toBeDefined()
   expect(await desk.find({ text: ' / 4:00' })).toBeDefined()
   expect(await desk.find({ text: '17%' })).toBeDefined()
-  expect(await desk.find({ text: /d$/ })).toBeDefined()
+  expect(await desk.find({ text: /\dd \d+h$/ })).toBeDefined()
   await desk.resize({ columns: 100, rows: 1 })
 
   const seamInLayout = async () => (await desk.findAll({ type: 'Svg' })).some(el => JSON.stringify(el).includes('Стык'))
@@ -250,7 +253,7 @@ test('a new session shows saved readings before the first answer', async ($, on)
   await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
   const desk = await $.ui.mount({ plugin: 'limits-bar', surface: 'desktop', ...BAND })
   expect(await desk.find({ text: '3:00' })).toBeDefined()
-  expect(await desk.find({ text: '4d' })).toBeDefined()
+  expect(await desk.find({ text: '4d 0h' })).toBeDefined()
 
   // Первое настоящее измерение не выдаётся за переход порога.
   await $.session.measure({

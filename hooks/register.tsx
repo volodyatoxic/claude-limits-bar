@@ -29,7 +29,8 @@ const clampRatio = (value: number) => Math.max(0.2, Math.min(0.8, value))
 const SHOW_DEMO = false
 
 const KINDS = ['five_hour', 'seven_day']
-const TIME_CELLS = 12
+// Самая длинная подпись — «100% / 6d 23h».
+const TIME_CELLS = 13
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000
 const FLASH_MS = 2600
 // Как часто чат сверяется с показаниями других чатов.
@@ -122,13 +123,13 @@ export const caption = (one: Limit, nowMs: number) => {
   return { pct, rest: time ? ` / ${time}` : '' }
 }
 
-// До сброса: «4:16», а от суток — «5d».
+// До сброса: «4:16», а от суток — «5d 3h»: одних суток мало, «1d» бывает и 47 часов.
 export const left = (resetsAt: string | undefined, nowMs: number) => {
   if (!resetsAt) return ''
   const at = Date.parse(resetsAt)
   if (Number.isNaN(at)) return ''
   const mins = Math.max(0, Math.floor((at - nowMs) / 60000))
-  if (mins >= 1440) return `${Math.floor(mins / 1440)}d`
+  if (mins >= 1440) return `${Math.floor(mins / 1440)}d ${Math.floor((mins % 1440) / 60)}h`
 
   return `${Math.floor(mins / 60)}:${String(mins % 60).padStart(2, '0')}`
 }

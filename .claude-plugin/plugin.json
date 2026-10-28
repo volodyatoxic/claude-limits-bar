@@ -1,6 +1,6 @@
 {
   "name": "limits-bar",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Лимиты подписки Claude (5 часов и неделя) тонкими полосками над полем ввода",
   "author": { "name": "Volodya" },
   "types": "./types/index.d.ts",
